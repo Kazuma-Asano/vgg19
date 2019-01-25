@@ -18,9 +18,11 @@ Pytorchに実装されているVGGシリーズのプログラムは洗礼され�
 
 * 使い方
   1. `/data/train/`に識別したい画像クラス名のフォルダを作成
-  2. `$python crawler.py`を実行して画像集め
-  3. `$python train.py`を実行して学習(`$python train.py --cuda`でGPUを利用して学習)
-  4. `$python test.py`で確認 （一応，学習時にも実行されます）
+  2. `$python crawler.py`を実行して画像集め  
+  （今回は1クラスあたり集めたデータの90%をトレーニング，10%をテストデータにしています）  
+  例：`$python crawler.py --num_img=500` => (Traindata : Testdata) = (450 : 50)  
+  3. `$python train.py`を実行して学習(`$python train.py --cuda`でGPUを利用して学習)  
+  4. `$python test.py`で確認 （一応，学習時にも実行されます）  
 
 * 学習したモデルに対し，新たに集めた画像を入力したい場合
   * そのうち実装しておきます
