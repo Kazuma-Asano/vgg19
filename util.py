@@ -3,6 +3,9 @@ import os
 import sys
 import time
 
+begin_time = 0
+last_time = 0
+
 def progress_bar(epoch, current, total, msg=None):
     global last_time, begin_time
 
@@ -33,7 +36,7 @@ def progress_bar(epoch, current, total, msg=None):
     tot_time = cur_time - begin_time
 
     L = []
-    L.append(' %4d/%4d' % (current+1, total))
+    L.append(' %4d/%4d' % (current+1, total-1))
     L.append(' | Step: %s' % format_time(step_time))
     L.append(' | Tot: %s' % format_time(tot_time))
     if msg:
@@ -86,3 +89,10 @@ def format_time(seconds):
     if f == '':
         f = '0ms'
     return f
+# 
+# if __name__ == '__main__':
+#     dataset_size = 100
+#     for epoch in range(1, 10+1):
+#         for iteration in range(dataset_size):
+#             progress_bar(epoch,current=iteration,total=dataset_size+1,msg='Any message')
+#         print()

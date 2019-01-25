@@ -7,10 +7,16 @@ import os
 from icrawler.builtin import GoogleImageCrawler
 import shutil # ファイル移動用
 import glob
+import argparse
+
+parser = argparse.ArgumentParser(description='dataset crawler')
+parser.add_argument('--num_imgs', '-n', type=int, default=50, help='number of dataset images')
+option = parser.parse_args()
+print(option)
 
 dataset_dir = './data/train/'
 dirs = os.listdir(dataset_dir)
-num_imgs = 50
+num_imgs = option.num_imgs # default = 50 (train = 45, test = 5)
 num_test_imgs = int(num_imgs * 0.1)
 # print("{0:06d}".format(num_test_imgs)) # 桁合わせ確認
 

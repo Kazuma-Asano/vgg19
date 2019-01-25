@@ -4,6 +4,8 @@ import argparse
 import os
 import torch
 import torch.nn as nn
+import torch.optim as optim
+from torch.autograd import Variable
 
 from dataloder import dataloader
 from network import VGG19, initialize_weights
@@ -27,19 +29,18 @@ def get_parser():
     return option
 
 ####### TRAIN #########
-def train(model, criterion, optimizer, scheduler=None):
-    model.train() #drop outを適用
+def train(epoch, model, criterion, optimizer, trainloader, scheduler=None):
+    model.train() # drop outを適用
     train_loss = 0
     correct = 0
     total = 0
 
-    for batch_idx, (data, labels) in enumerate(trainloader):
+    for iteration, (inputs, labels) in enumerate(trainloader):
 
-        if use_gpu: #GPUが使えるなら
-            inputs = Variable(data.cuda())
-            labels = Variable(labels.cuda())
-        else:
-            inputs, labels = Variable(data), Variable(labels)
+        # GPUが使えるなら
+        if use_gpu:
+            inputs = inputs.cuda()
+            labels = labels.cuda()
 
         optimizer.zero_grad()
 
@@ -48,48 +49,46 @@ def train(model, criterion, optimizer, scheduler=None):
         _, preds = torch.max(outputs.data, 1)
         loss = criterion(outputs, labels)
 
-        loss.backward() #Back propagation
+        loss.backward() # Back propagation
         #optimizer.step() # n epoch でlearning rate を m倍する
 
         train_loss += loss.item()
         total += labels.size(0)
         correct += preds.eq(labels).sum().item()
 
-        progress_bar(batch_idx, len(trainloader),
-                        'Train Loss: %.3f | Train Acc: %.3f%% (%d/%d)'
-                        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+        printLoss = (train_loss/(iteration+1))
+        printAcc = 100.*correct/total
+        progress_bar(epoch, iteration, len(testloader),
+                    ': Loss: {:.4f}, Acc: {:.4f} % ({}/{})'.format(printLoss, printAcc, correct, total) )
 
 ######## TEST ########
-def test(model):
-    model.eval() #drop outを適用しない
+def test(epoch, model, criterion, testloader):
+    model.eval() # drop outを適用しない
     test_loss = 0.0
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (data, labels) in enumerate(valloader):
+        for iteration, (inputs, labels) in enumerate(testloader):
 
+            # GPUが使えるなら
             if use_gpu:
-                inputs = Variable(data.cuda())
-                labels = Variable(labels.cuda())
-            else:
-                inputs, labels = Variable(data), Variable(labels)
+                inputs = inputs.cuda()
+                labels = labels.cuda()
 
             # forward
             outputs = model(inputs)
             _, preds = torch.max(outputs.data, 1)
             loss = criterion(outputs, labels)
 
-            # statistics
             test_loss += loss.item()
             total += labels.size(0)
             correct += preds.eq(labels).sum().item()
 
-            progress_bar(batch_idx, len(valloader),
-                            'Test Loss: %.3f | Test Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            printLoss = (train_loss/(iteration+1))
+            printAcc = 100.*correct/total
+            progress_bar(epoch, iteration, len(testloader),
+                        ': Loss: {:.4f}, Acc: {:.4f} % ({}/{})'.format(printLoss, printAcc, correct, total) )
 
-    acc = 100.*correct/total
-    return acc
 
 if __name__ == '__main__':
     #####################
@@ -101,11 +100,15 @@ if __name__ == '__main__':
         raise Exception("No GPU found, please run without --cuda")
 
     gpu_ids = []
-    torch.manual_seed(opt.seed)
+    use_gpu = False
 
     if opt.cuda:
         torch.cuda.manual_seed(opt.seed)
         gpu_ids = [0]
+        use_gpu = True
+    else:
+        torch.manual_seed(opt.seed)
+
 
     #####################
     ## datasetの読み込み ##
@@ -113,7 +116,7 @@ if __name__ == '__main__':
     print('==> Loading data...')
     print('-' * 20)
     trainloader, testloader, class_names = dataloader(batch_size=opt.batchSize,
-                                                      tbatchSize=opt.tbatchSize,
+                                                      tbatchSize=opt.testBatchSize,
                                                       threads=opt.threads)
     print('OK')
 
@@ -126,10 +129,18 @@ if __name__ == '__main__':
     model.apply(initialize_weights) # 初期化
     print(model)
     print('OK')
+    print('-' * 20)
 
     # optimaizerなどの設定
     criterion = nn.CrossEntropyLoss()
+    if opt.cuda:
+        criterion = criterion.cuda()
+
     optimizer = optim.Adam(model.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
-    for epoch in range(1, opt.nEpochs):
-        train(model, criterion, optimizer)
+    print('==> Start training...')
+    for epoch in range(1, opt.nEpochs+1): #default 100 epoch
+        print('Train:')
+        train(epoch, model, criterion, optimizer, trainloader)
+        print('Test:')
+        test(epoch, model, criterion, testloader)

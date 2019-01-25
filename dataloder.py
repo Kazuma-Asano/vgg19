@@ -6,9 +6,6 @@ from torchvision.utils import save_image # テスト用
 
 def dataloader(batch_size=4, tbatchSize=4, threads=4):
     # データセットの設定
-    print('==> Preparing data...')
-    print('-' * 20)
-
     ############################################################################
     # 読み込む画像の前処理
     img_size = 256
@@ -49,6 +46,9 @@ if __name__ == '__main__':
     Test
     $python dataloader.py
     """
+    print('==> Preparing data...')
+    print('-' * 20)
+    
     trainloader, testloader, class_names = dataloader(batch_size=4)
 
     # どんなデータが読み込まれたか保存してみる

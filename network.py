@@ -25,75 +25,93 @@ class VGG19(nn.Module):
 
         # inout : w x h x 3ch(RGB)
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1, bias=True) # conv3-64
-        self.relu1 = nn.ReLU(inplace=True) # 活性化関数
+        # self.relu1 = nn.ReLU(inplace=True) # 活性化関数
+        self.relu1 = nn.ReLU()
 
         # 以降，in_channels, out_channelsの表記は省略
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1, bias=True) # conv3-64
-        self.relu2 = nn.ReLU(inplace=True)
+        # self.relu2 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU()
         self.max1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         ########################################################################
 
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1, bias=True) # conv3-128
-        self.relu3 = nn.ReLU(inplace=True)
+        # self.relu3 = nn.ReLU(inplace=True)
+        self.relu3 = nn.ReLU()
 
         self.conv4 = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1, bias=True) # conv3-128
-        self.relu4 = nn.ReLU(inplace=True)
+        # self.relu4 = nn.ReLU(inplace=True)
+        self.relu4 = nn.ReLU()
         self.max2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         ########################################################################
 
         self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1, bias=True) # conv3-256
-        self.relu5 = nn.ReLU(inplace=True)
+        # self.relu5 = nn.ReLU(inplace=True)
+        self.relu5 = nn.ReLU()
 
         self.conv6 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True) # conv3-256
-        self.relu6 = nn.ReLU(inplace=True)
+        # self.relu6 = nn.ReLU(inplace=True)
+        self.relu6 = nn.ReLU()
 
         self.conv7 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True) # conv3-256
-        self.relu7 = nn.ReLU(inplace=True)
+        # self.relu7 = nn.ReLU(inplace=True)
+        self.relu7 = nn.ReLU()
 
         self.conv8 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True) # conv3-256
-        self.relu8 = nn.ReLU(inplace=True)
+        # self.relu8 = nn.ReLU(inplace=True)
+        self.relu8 = nn.ReLU()
         self.max3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         ########################################################################
 
         self.conv9 = nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu9 = nn.ReLU(inplace=True)
+        # self.relu9 = nn.ReLU(inplace=True)
+        self.relu9 = nn.ReLU()
 
         self.conv10 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu10 = nn.ReLU(inplace=True)
+        # self.relu10 = nn.ReLU(inplace=True)
+        self.relu10 = nn.ReLU()
 
         self.conv11 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu11 = nn.ReLU(inplace=True)
+        # self.relu11 = nn.ReLU(inplace=True)
+        self.relu11 = nn.ReLU()
 
         self.conv12 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu12 = nn.ReLU(inplace=True)
+        # self.relu12 = nn.ReLU(inplace=True)
+        self.relu12 = nn.ReLU()
         self.max4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         ########################################################################
 
         self.conv13 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu13 = nn.ReLU(inplace=True)
+        # self.relu13 = nn.ReLU(inplace=True)
+        self.relu13 = nn.ReLU()
 
         self.conv14 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu14 = nn.ReLU(inplace=True)
+        # self.relu14 = nn.ReLU(inplace=True)
+        self.relu14 = nn.ReLU()
 
         self.conv15 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu15 = nn.ReLU(inplace=True)
+        # self.relu15 = nn.ReLU(inplace=True)
+        self.relu15 = nn.ReLU()
 
         self.conv16 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1, bias=True) # conv3-512
-        self.relu16 = nn.ReLU(inplace=True)
+        # self.relu16 = nn.ReLU(inplace=True)
+        self.relu16 = nn.ReLU()
         self.max5 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         ########################################################################
 
         self.fc1 = nn.Linear(512*8*8, 4096) # forward内の print(out37.size()) でサイズ確認
-        self.relu17 = nn.ReLU(inplace=True)
+        # self.relu17 = nn.ReLU(inplace=True)
+        self.relu17 = nn.ReLU()
         self.drop1 = nn.Dropout()
 
         self.fc2 = nn.Linear(in_features=4096, out_features=4096)
-        self.relu18 = nn.ReLU(inplace=True)
+        # self.relu18 = nn.ReLU(inplace=True)
+        self.relu18 = nn.ReLU()
         self.drop2 = nn.Dropout()
 
         self.fc3 = nn.Linear(in_features=4096, out_features=num_class)
@@ -184,10 +202,14 @@ if __name__ == '__main__':
         x.cuda()
 
     out = model(x)
+    # print(out)
+    # print(out.data)
+
 
     softmax = nn.Softmax(dim=1) # 値を0 ~ 1にして確率化
     predicts = softmax(out)
-    print(predicts)
-
-    loss = torch.sum(out.data)
+    # print(predicts)
+    #
+    loss = torch.sum(predicts)
+    print(loss)
     loss.backward()
