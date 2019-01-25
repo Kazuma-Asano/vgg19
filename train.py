@@ -5,7 +5,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
+
 
 from dataloder import dataloader
 from network import VGG19, initialize_weights
