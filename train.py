@@ -151,7 +151,10 @@ if __name__ == '__main__':
 
     # optimaizerなどの設定
     criterion = nn.CrossEntropyLoss()
+
     if opt.cuda:
+        model = torch.nn.DataParallel(model, device_ids=gpu_ids)
+        model.cuda()
         criterion = criterion.cuda()
 
     optimizer = optim.Adam(model.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
