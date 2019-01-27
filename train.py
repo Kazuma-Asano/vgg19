@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import argparse
 import os
+import argparse
+import signal
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 
 from dataloder import dataloader
 from network import VGG19, initialize_weights
@@ -89,6 +90,13 @@ def test(epoch, model, criterion, testloader):
             progress_bar(epoch, iteration, len(testloader),
                         ': Loss: {:.4f}, Acc: {:.4f} % ({}/{})'.format(printLoss, printAcc, correct, total) )
 
+def checkpoint(epoch, model):
+    checkpointDir = './checkpoint/'
+    os.makedirs(checkpointDir, exist_ok=True)
+    model_out_path = './checkpoint/model_epoch_{}.pth'.format(epoch)
+    torch.save(model.state_dict(), model_out_path)
+    print('---Checkpoint saved---\n')
+
 
 if __name__ == '__main__':
     #####################
@@ -139,8 +147,14 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
     print('==> Start training...')
-    for epoch in range(1, opt.nEpochs+1): #default 100 epoch
-        print('Train:')
-        train(epoch, model, criterion, optimizer, trainloader)
-        print('Test:')
-        test(epoch, model, criterion, testloader)
+    try:
+        for epoch in range(1, opt.nEpochs+1): #default 100 epoch
+            print('Train:')
+            train(epoch, model, criterion, optimizer, trainloader)
+            print('Test:')
+            test(epoch, model, criterion, testloader)
+            if epoch%10 == 0:
+                checkpoint(epoch, model)
+    except KeyboardInterrupt as e: # 強制終了時の処理
+        checkpoint(epoch, model)
+        print('Ctrl-C Finished')
