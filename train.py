@@ -23,7 +23,7 @@ def get_parser():
     parser.add_argument('--threads', type=int, default=4, help='number of threads for data loader to use')
     parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
     parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
-
+    parser.add_argument('--resume', '-r', type=int, default=0, help='load trained model epochs')
     option = parser.parse_args()
     print(option)
 
@@ -93,7 +93,7 @@ def test(epoch, model, criterion, testloader):
 def checkpoint(epoch, model):
     checkpointDir = './checkpoint/'
     os.makedirs(checkpointDir, exist_ok=True)
-    model_out_path = './checkpoint/model_epoch_{}.pth'.format(epoch)
+    model_out_path = './checkpoint/model_epoch{}.pth'.format(epoch)
     torch.save(model.state_dict(), model_out_path)
     print('---Checkpoint saved---\n')
 
@@ -138,6 +138,16 @@ if __name__ == '__main__':
     print(model)
     print('OK')
     print('-' * 20)
+
+    # 学習したモデルのロード
+    if opt.resume > 0:
+        print('==> Resuming from checkpoint..')
+        assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+        model.load_state_dict(torch.load('./checkpoint/model_epoch{}.pth'.format(opt.resume),
+                                map_location=lambda storage,
+                                loc: storage))
+        print('OK')
+        print('-' * 20)
 
     # optimaizerなどの設定
     criterion = nn.CrossEntropyLoss()
