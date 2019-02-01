@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 # 初期化コンポーネント
 def initialize_weights(self):
     for m in self.modules():
