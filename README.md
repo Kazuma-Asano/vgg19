@@ -14,7 +14,7 @@ Pytorchに実装されているVGGシリーズのプログラムは洗礼され�
   * `Python = 3.5`
   * `Pytorch = 1.0.0`
   * `icrawler = 0.6.2` （自動画像集め用）
-  その他いろいろ
+  *　`PIL` etc.
 
 * 使い方
   1. `/data/train/`に識別したい画像クラス名のフォルダを作成
@@ -24,5 +24,6 @@ Pytorchに実装されているVGGシリーズのプログラムは洗礼され�
   3. `$python train.py`を実行して学習(`$python train.py --cuda`でGPUを利用して学習)  
   4. `$python test.py`で確認 （一応，学習時にも実行されます）  
 
-* 学習したモデルに対し，新たに集めた画像を入力したい場合
-  * そのうち実装しておきます
+* 学習したモデルに対し，新たに集めた画像で評価(validation)したい場合
+  * `./data/val`に画像を保存
+  * `$python validation.py`(`$python validation.py --cuda`でGPUを利用)
