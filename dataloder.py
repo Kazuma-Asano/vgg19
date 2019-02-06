@@ -8,7 +8,7 @@ def dataloader(batch_size=4, tbatchSize=4, threads=4):
     # データセットの設定
     ############################################################################
     # 読み込む画像の前処理
-    img_size = 256
+    img_size = 224
 
     train_data_transform = transforms.Compose([
             transforms.RandomResizedCrop(img_size), # ランダムな場所をクロップ & リサイズ
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     """
     print('==> Preparing data...')
     print('-' * 20)
-    
+
     trainloader, testloader, class_names = dataloader(batch_size=4)
 
     # どんなデータが読み込まれたか保存してみる
@@ -57,6 +57,8 @@ if __name__ == '__main__':
     img_name = 'input.png'
     for iteration, batch in enumerate(trainloader, 1):
         img, label = batch[0], batch[1]
+        img.requires_grad_()
+        print(img.requires_grad)
         print(label)
         for i in label:
             print(class_names[i])
