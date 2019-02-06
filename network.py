@@ -3,6 +3,45 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+import torch.utils.model_zoo as model_zoo
+
+model_urls = {
+    'vgg11': 'https://download.pytorch.org/models/vgg11-bbd30ac9.pth',
+    'vgg13': 'https://download.pytorch.org/models/vgg13-c768596a.pth',
+    'vgg16': 'https://download.pytorch.org/models/vgg16-397923af.pth',
+    'vgg19': 'https://download.pytorch.org/models/vgg19-dcbb9e9d.pth',
+    'vgg11_bn': 'https://download.pytorch.org/models/vgg11_bn-6002323d.pth',
+    'vgg13_bn': 'https://download.pytorch.org/models/vgg13_bn-abd245e5.pth',
+    'vgg16_bn': 'https://download.pytorch.org/models/vgg16_bn-6c64b313.pth',
+    'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
+}
+
+def define_network(num_class, gpu_ids=None, pretrained=False):
+
+    model = VGG19()
+    # パラメータの適用 or 初期化
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['vgg19_bn']))
+    else:
+        model.apply(initialize_weights) # 初期化
+
+    if num_class != 1000:
+        model.classifier = nn.Sequential (
+            nn.Linear(512*7*7, 4096), # forward内の print(out.size()) でサイズ確認
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, num_class),
+        )
+
+    if gpu_ids != None:
+        model = torch.nn.DataParallel(model, device_ids=gpu_ids)
+        model.cuda()
+
+    return model
+
 
 # 初期化コンポーネント
 def initialize_weights(self):
@@ -23,7 +62,7 @@ def initialize_weights(self):
 
 ################################################################################
 class VGG19(nn.Module):
-    def __init__(self, num_class=10):
+    def __init__(self, num_class=1000):
         super(VGG19, self).__init__()
         ########################################################################
         self.features = nn.Sequential(
@@ -108,19 +147,19 @@ class VGG19(nn.Module):
         )
 
         self.classifier = nn.Sequential (
-            nn.Linear(512*8*8, 4096), # forward内の print(out.size()) でサイズ確認
+            nn.Linear(512*7*7, 4096), # 第一引数はforward内の print(out_features.size()) でサイズ確認
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Linear(4096, num_class)
+            nn.Linear(4096, num_class),
         )
 
 
     def forward(self, x):
         out_features = self.features(x)
-        print(out_features.size(0))
+        # print(out_features.size())
         out_view = out_features.view(out_features.size(0), -1) # 1次元配列化
         out_classifier = self.classifier(out_view)
         return out_classifier
@@ -134,12 +173,11 @@ if __name__ == '__main__':
     """
 
     # モデルの用意
-    model = VGG19()
-    model.apply(initialize_weights) # 初期化
+    model = define_network(num_class=10, pretrained=False)
     print(model)
 
     # データの用意
-    x = torch.FloatTensor( np.random.random((1, 3, 256, 256))) # (batch_size, channels, width, height)
+    x = torch.FloatTensor( np.random.random((1, 3, 224, 224))) # (batch_size, channels, width, height)
 
     # GPUが使えるならば
     if torch.cuda.is_available():

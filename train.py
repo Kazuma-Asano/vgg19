@@ -9,18 +9,18 @@ import torch.nn as nn
 import torch.optim as optim
 
 from dataloder import dataloader
-from network import VGG19, initialize_weights
+from network import define_network
 from util import progress_bar
 
 def get_parser():
     # Training settings
     parser = argparse.ArgumentParser(description='Pytorch vgg19')
-    parser.add_argument('--batchSize', '-b', type=int, default=16, help='training batch size')
-    parser.add_argument('--testBatchSize', '-tb', type=int, default=8, help='testing batch size')
+    parser.add_argument('--batchSize', '-b', type=int, default=9, help='training batch size')
+    parser.add_argument('--testBatchSize', '-tb', type=int, default=4, help='testing batch size')
     parser.add_argument('--nEpochs', '-e', type=int, default=100, help='number of epochs to train for')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning Rate. Default=0.001')
     parser.add_argument('--cuda', action='store_true', help='use cuda?') # GPUを利用するなら $python train.py --cuda
-    parser.add_argument('--threads', type=int, default=4, help='number of threads for data loader to use')
+    parser.add_argument('--threads', type=int, default=1, help='number of threads for data loader to use')
     parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
     parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
     parser.add_argument('--resume', '-r', type=int, default=0, help='load trained model epochs')
@@ -36,7 +36,12 @@ def train(epoch, model, criterion, optimizer, trainloader, scheduler=None):
     correct = 0
     total = 0
 
-    for iteration, (inputs, labels) in enumerate(trainloader):
+    for iteration, batch in enumerate(trainloader):
+        inputs = batch[0]
+        labels = batch[1]
+
+        # これがないと計算グラフが保持されず，学習できない
+        inputs.requires_grad_()
 
         # GPUが使えるなら
         if use_gpu:
@@ -51,7 +56,7 @@ def train(epoch, model, criterion, optimizer, trainloader, scheduler=None):
         loss = criterion(outputs, labels)
 
         loss.backward() # Back propagation
-        #optimizer.step() # n epoch でlearning rate を m倍する
+        optimizer.step()
 
         train_loss += loss.item()
         total += labels.size(0)
@@ -59,7 +64,7 @@ def train(epoch, model, criterion, optimizer, trainloader, scheduler=None):
 
         printLoss = (train_loss/(iteration+1))
         printAcc = 100.*correct/total
-        progress_bar(epoch, iteration, len(testloader),
+        progress_bar(epoch, iteration, len(trainloader),
                     ': Loss: {:.4f}, Acc: {:.4f} % ({}/{})'.format(printLoss, printAcc, correct, total) )
 
 ######## TEST ########
@@ -69,7 +74,9 @@ def test(epoch, model, criterion, testloader):
     correct = 0
     total = 0
     with torch.no_grad():
-        for iteration, (inputs, labels) in enumerate(testloader):
+        for iteration, batch in enumerate(testloader):
+            inputs = batch[0]
+            labels = batch[1]
 
             # GPUが使えるなら
             if use_gpu:
@@ -85,7 +92,7 @@ def test(epoch, model, criterion, testloader):
             total += labels.size(0)
             correct += preds.eq(labels).sum().item()
 
-            printLoss = (train_loss/(iteration+1))
+            printLoss = (test_loss/(iteration+1))
             printAcc = 100.*correct/total
             progress_bar(epoch, iteration, len(testloader),
                         ': Loss: {:.4f}, Acc: {:.4f} % ({}/{})'.format(printLoss, printAcc, correct, total) )
@@ -105,7 +112,7 @@ if __name__ == '__main__':
     opt = get_parser()
 
     if opt.cuda and not torch.cuda.is_available():
-        raise Exception("No GPU found, please run without --cuda")
+        raise Exception("GPU is not found, please run without --cuda")
 
     gpu_ids = []
     use_gpu = False
@@ -133,8 +140,7 @@ if __name__ == '__main__':
     #####################
     print('==> Building model...')
     print('-' * 20)
-    model = VGG19()
-    model.apply(initialize_weights) # 初期化
+    model = define_network(num_class=len(class_names), pretrained=True)
     print(model)
     print('OK')
     print('-' * 20)
@@ -153,8 +159,6 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     if opt.cuda:
-        model = torch.nn.DataParallel(model, device_ids=gpu_ids)
-        model.cuda()
         criterion = criterion.cuda()
 
     optimizer = optim.Adam(model.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
